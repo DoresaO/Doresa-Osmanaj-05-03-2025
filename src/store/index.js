@@ -5,7 +5,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    user: null,
+    user: {email:"visar@gmial.com", name:"Visar Uruqi"},
   },
   getters: {
     isAuthenticated: state=>!!state.user,
@@ -18,14 +18,14 @@ export default new Vuex.Store({
   actions: {
     login({commit},{email,password}){
       if(email==="visar@gmail.com" && password ==="password"){
-        commit("setUser",{email});
+        commit("setUser",{email, name:"Visar Uruqi"});
        return true;
       }else{
         return false;
       }
     },
     logout({commit}){
-      commit("logout");
+      commit("setUser",null);
     }
   },
   modules: {},
