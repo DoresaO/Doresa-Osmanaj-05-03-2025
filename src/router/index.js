@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import LoginPage from "@/views/Login.vue";
 import StudentsPage from "@/views/StudentsPage.vue";
+import ArchivePage from "@/views/ArchivePage.vue";
 
 Vue.use(VueRouter);
 
@@ -21,6 +22,11 @@ const routes = [
     path: "/students",
     name: "students",
     component: StudentsPage,
+  },
+  {
+    path: "/archive",
+    name: "archive",
+    component: ArchivePage,
   },
 ];
 

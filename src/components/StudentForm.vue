@@ -1,4 +1,6 @@
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   name: "StudentForm",
   data() {
@@ -45,15 +47,62 @@ export default {
         "Zubin Potok",
         "Mitrovicë e Veriut",
       ],
+      indexTaken: false,
+      nameError: "",
+      dobError: "",
     };
+  },
+  computed: {
+    ...mapGetters(["getStudents"]),
   },
   methods: {
     validateIndex() {
       this.newStudent.index = this.newStudent.index
         .replace(/\D/g, "")
         .slice(0, 4);
+      if (this.getStudents && Array.isArray(this.getStudents)) {
+        this.indexTaken = this.getStudents.some(
+          (student) => String(student.index) === this.newStudent.index
+        );
+      }
     },
+
+    validateName() {
+      const nameRegex = /^[A-Za-z\s]+$/; // Only letters and spaces
+      if (this.newStudent.name.length > 20) {
+        this.nameError = "⚠ Name must be under 20 characters";
+      } else if (!nameRegex.test(this.newStudent.name)) {
+        this.nameError = "⚠ Name can only contain letters";
+      } else {
+        this.nameError = "";
+      }
+    },
+
+    validateDob() {
+      const minYear = 1990;
+      const maxYear = new Date().getFullYear() - 5; // Ensuring school-age students (5+ years old)
+      const selectedYear = new Date(this.newStudent.dob).getFullYear();
+
+      if (selectedYear < minYear || selectedYear > maxYear) {
+        this.dobError = `⚠ Date must be between ${minYear} and ${maxYear}`;
+      } else {
+        this.dobError = "";
+      }
+    },
+
     submitForm() {
+      this.validateName();
+      this.validateDob();
+
+      if (this.indexTaken) {
+        alert("This index is alrady taken. Plesse enter a different one.");
+        return;
+      }
+
+      if (this.nameError || this.dobError) {
+        return;
+      }
+
       if (
         this.newStudent.index.length === 4 &&
         this.newStudent.name &&
@@ -62,7 +111,9 @@ export default {
       ) {
         this.$emit("add-student", { ...this.newStudent });
         this.newStudent = { index: "", name: "", dob: "", municipality: "" };
-        this.$emit("close");
+        this.indexTaken = false;
+        this.nameError = "";
+        this.dobError = "";
       } else {
         alert(
           "Please enter a valid Index (4 digits) and select a Municipality."
@@ -86,14 +137,26 @@ export default {
         @input="validateIndex"
         required
       />
-
+      <span v-if="indexTaken" class="error-message"
+        >⚠ This index is already taken</span
+      >
       <input
         v-model="newStudent.name"
         type="text"
         placeholder="Name"
+        @input="validateName"
         required
       />
-      <input v-model="newStudent.dob" type="date" required />
+      <span v-if="nameError" class="error-message">{{ nameError }}</span>
+
+      <input
+        v-model="newStudent.dob"
+        type="date"
+        @input="validateDob"
+        required
+      />
+      <span v-if="dobError" class="error-message">{{ dobError }}</span>
+
       <select v-model="newStudent.municipality" required>
         <option value="" disabled>Select Municipality</option>
         <option v-for="city in municipalities" :key="city" :value="city">

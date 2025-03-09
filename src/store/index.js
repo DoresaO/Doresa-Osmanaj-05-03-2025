@@ -20,10 +20,17 @@ export default new Vuex.Store({
       { index: 1115, name: "Krenar Gashi", dob: "1979-10-05", municipality: "Prishtinë" },
       { index: 1116, name: "Yll Berisha", dob: "1978-10-05", municipality: "Prishtinë" },
     ],
+    archivedStudents: JSON.parse(localStorage.getItem("archived")) || [
+      { index: 1117, name: "Besa Gashi", dob: "1962-10-05", municipality: "Istog", archiveDate: "2021-10-05" },
+      { index: 1118, name: "Yllka Bajraktari", dob: "1961-10-05", municipality: "Prishtinë", archiveDate: "2021-10-05" },
+      { index: 1119, name: "Argjend Gashi", dob: "1960-10-05", municipality: "Istog", archiveDate: "2021-10-05" },
+      { index: 1120, name: "Arta Gashi", dob: "1969-10-05", municipality: "Prishtinë", archiveDate: "2021-10-05" },
+    ],
   },
   getters: {
     isAuthenticated: state=>!!state.user,
     getStudents: (state) => state.students,
+    getArchivedStudents: (state) => state.archivedStudents,
   },
   mutations: {
     setUser(state,user){
@@ -41,9 +48,43 @@ export default new Vuex.Store({
       }
     },
     DELETE_STUDENT(state, studentIndex) {
-      state.students = state.students.filter((s) => s.index !== studentIndex);
-      localStorage.setItem("students", JSON.stringify(state.students));
-    },
+      const studentIndexInArray = state.students.findIndex(s => s.index === studentIndex);
+      
+      if (studentIndexInArray !== -1) { 
+        // Copy the student object and add archive date
+        const archivedStudent = { 
+          ...state.students[studentIndexInArray], 
+          archiveDate: new Date().toISOString().split('T')[0] 
+        };
+    
+        // Push to archive list
+        state.archivedStudents.push(archivedStudent);
+    
+        // Remove from students list
+        state.students.splice(studentIndexInArray, 1);
+        localStorage.setItem("students", JSON.stringify(state.students));
+        localStorage.setItem("archived", JSON.stringify(state.archivedStudents));
+      } else {
+        console.warn(`Student with index ${studentIndex} not found.`);
+      }
+    },    
+    RESTORE_STUDENT(state, studentIndex) {
+      const studentIndexInArray = state.archivedStudents.findIndex(s => s.index === studentIndex);
+      
+      if (studentIndexInArray !== -1) {
+        const student = state.archivedStudents[studentIndexInArray];
+    
+        delete student.archiveDate; 
+        state.students.push(student);
+        state.archivedStudents.splice(studentIndexInArray, 1);
+    
+        //Save updated lists to localStorage
+        localStorage.setItem("students", JSON.stringify(state.students));
+        localStorage.setItem("archived", JSON.stringify(state.archivedStudents));
+      } else {
+        console.warn(`Archived student with index ${studentIndex} not found.`);
+      }
+    },    
   },
   actions: {
     login({commit},{email,password}){
@@ -65,6 +106,9 @@ export default new Vuex.Store({
     },
     deleteStudent({ commit }, studentIndex) {
       commit("DELETE_STUDENT", studentIndex);
+    },
+    restoreStudent({ commit }, studentIndex) {
+      commit("RESTORE_STUDENT", studentIndex);
     },
   },
   modules: {},
