@@ -1,29 +1,23 @@
 <script>
-import { mapActions, mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import PaginationComponent from "@/components/PaginationComponent.vue";
-import StudentForm from "@/components/StudentForm.vue";
-import EditStudentForm from "@/components/EditStudentForm.vue";
-import Swal from "sweetalert2";
 
 export default {
-  components: { PaginationComponent, StudentForm, EditStudentForm },
+  components: { PaginationComponent },
   data() {
     return {
       searchQuery: "",
       currentPage: 1,
       rowsPerPage: 6,
-      showForm: false,
-      studentToEdit: null,
       sortColumn: "name",
       sortOrder: "asc",
     };
   },
   computed: {
-    ...mapGetters(["getStudents"]),
+    ...mapGetters(["getArchivedStudents"]),
 
     filteredStudents() {
       if (!this.searchQuery.trim()) return this.sortedStudents;
-
       return this.sortedStudents.filter((student) => {
         const searchLower = this.searchQuery.toLowerCase();
         return (
@@ -35,7 +29,7 @@ export default {
     },
 
     sortedStudents() {
-      return [...this.getStudents].sort((a, b) => {
+      return [...this.getArchivedStudents].sort((a, b) => {
         if (!this.sortColumn) return 0;
 
         const valueA = a[this.sortColumn];
@@ -62,25 +56,7 @@ export default {
   },
 
   methods: {
-    ...mapActions(["addStudent", "deleteStudent", "editStudent"]),
-
-    toggleForm() {
-      this.showForm = !this.showForm;
-    },
-
-    handleAddStudent(student) {
-      this.addStudent(student);
-      this.showForm = false;
-    },
-
-    editStudent(student) {
-      this.studentToEdit = { ...student };
-    },
-
-    handleUpdateStudent(updatedStudent) {
-      this.$store.dispatch("editStudent", updatedStudent);
-      this.studentToEdit = null;
-    },
+    ...mapActions(["restoreStudent"]),
 
     handleSort(column) {
       if (this.sortColumn === column) {
@@ -95,55 +71,15 @@ export default {
       if (this.sortColumn !== column) return "⬍";
       return this.sortOrder === "asc" ? "⬆" : "⬇";
     },
-
-    async confirmDelete(student){
-      const result = await Swal.fire({
-        title: `Are you sure?`,
-        text:`Do you want to delete ${student.name}?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "Cancel!",
-        backdrop:true,
-      });
-      if(result.isConfirmed){
-        this.deleteStudent(student.index);
-        Swal.fire({
-          title: "Deleted!",
-          text: `${student.name} has been deleted.`,
-          icon: "success",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      }
-    },
   },
 };
 </script>
 
 <template>
-  <div class="students-container">
+  <div class="archive-container">
     <div class="header">
-      <h2>Students</h2>
-      <span class="register-student" @click="toggleForm"
-        >+ Register New Student</span
-      >
+      <h2>Archived Students</h2>
     </div>
-
-    <StudentForm
-      v-if="showForm"
-      @add-student="handleAddStudent"
-      @close="toggleForm"
-    />
-
-    <EditStudentForm
-      v-if="studentToEdit"
-      :student="studentToEdit"
-      @update-student="handleUpdateStudent"
-      @close="studentToEdit = null"
-    />
 
     <div class="search-container">
       <input
@@ -167,6 +103,9 @@ export default {
             <th @click="handleSort('municipality')">
               Municipality {{ getSortIcon("municipality") }}
             </th>
+            <th @click="handleSort('archiveDate')">
+              Archived Date {{ getSortIcon("archiveDate") }}
+            </th>
             <th>Action</th>
           </tr>
         </thead>
@@ -176,10 +115,10 @@ export default {
             <td>{{ student.name }}</td>
             <td>{{ student.dob }}</td>
             <td>{{ student.municipality }}</td>
+            <td>{{ student.archiveDate }}</td>
             <td>
-              <a href="#" @click.prevent="editStudent(student)">Edit</a> |
-              <a href="#" @click.prevent="confirmDelete(student)"
-                >Delete</a
+              <a href="#" @click.prevent="restoreStudent(student.index)"
+                >Restore</a
               >
             </td>
           </tr>
@@ -198,7 +137,7 @@ export default {
 </template>
 
 <style scoped>
-.students-container {
+.archive-container {
   width: 100%;
   padding: 20px;
 }
@@ -211,12 +150,6 @@ export default {
 h2 {
   font-size: 24px;
   font-weight: bold;
-}
-.register-student {
-  font-size: 18px;
-  color: #dc3545;
-  text-decoration: underline;
-  cursor: pointer;
 }
 .search-container {
   position: relative;
@@ -283,9 +216,6 @@ th:hover {
     flex-direction: column;
     align-items: flex-start;
   }
-  .register-student {
-    margin-top: 10px;
-  }
   .search-container {
     width: 100%;
   }
@@ -298,14 +228,11 @@ th:hover {
   }
 }
 @media (max-width: 480px) {
-  .students-container {
+  .archive-container {
     padding: 10px;
   }
   h2 {
     font-size: 20px;
-  }
-  .register-student {
-    font-size: 16px;
   }
   .search-input {
     font-size: 14px;
