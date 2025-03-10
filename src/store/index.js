@@ -5,7 +5,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    user: {email:"visar@gmial.com", name:"Visar Uruqi"},
+    user: JSON.parse(localStorage.getItem("user")) || null,
     students: JSON.parse(localStorage.getItem("students")) || [
       { index: 1458, name: "Mergim Bajrami", dob: "1989-10-05", municipality: "Prishtinë" },
       { index: 1452, name: "Blerton Rexha", dob: "1988-10-05", municipality: "Prishtinë" },
@@ -35,6 +35,11 @@ export default new Vuex.Store({
   mutations: {
     setUser(state,user){
       state.user=user;
+      localStorage.setItem("user",JSON.stringify(user));
+    },
+    clearUser(state){
+      state.user=null;
+      localStorage.removeItem("user");
     },
     ADD_STUDENT(state, student) {
       state.students.push(student);
@@ -89,14 +94,21 @@ export default new Vuex.Store({
   actions: {
     login({commit},{email,password}){
       if(email==="visar@gmail.com" && password ==="password"){
-        commit("setUser",{email, name:"Visar Uruqi"});
+       const user = {email, name:"Visar Uruqi"};
+       commit("setUser",user);
        return true;
       }else{
         return false;
       }
     },
     logout({commit}){
-      commit("setUser",null);
+      commit("clearUser");
+    },
+    restoreSession({commit}){
+      const user = JSON.parse(localStorage.getItem("user"));
+      if(user){
+        commit("setUser",user);
+      }
     },
     addStudent({ commit }, student) {
       commit("ADD_STUDENT", student);
