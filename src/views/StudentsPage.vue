@@ -201,6 +201,7 @@ export default {
 .students-container {
   width: 100%;
   padding: 20px;
+  min-height: 100vh;
 }
 .header {
   display: flex;
@@ -300,6 +301,7 @@ th:hover {
 @media (max-width: 480px) {
   .students-container {
     padding: 10px;
+    min-height: 80svh;
   }
   h2 {
     font-size: 20px;
