@@ -1,6 +1,7 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import PaginationComponent from "@/components/PaginationComponent.vue";
+import Swal from "sweetalert2";
 
 export default {
   components: { PaginationComponent },
@@ -71,6 +72,26 @@ export default {
       if (this.sortColumn !== column) return "⬍";
       return this.sortOrder === "asc" ? "⬆" : "⬇";
     },
+
+    confirmRestore(student) {
+      Swal.fire({
+        title: "Are you sure?",
+        text: `Do you want to restore ${student.name}?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc3545",
+        confirmButtonText: "Yes, restore it!",
+      }).then((result) =>{
+        if (result.isConfirmed) {
+          this.restoreStudent(student.index);
+          Swal.fire(
+            "Restored!",
+            `${student.name} has been restored.`,
+            "success"
+          );
+        }
+      })
+    },
   },
 };
 </script>
@@ -117,7 +138,7 @@ export default {
             <td>{{ student.municipality }}</td>
             <td>{{ student.archiveDate }}</td>
             <td>
-              <a href="#" @click.prevent="restoreStudent(student.index)"
+              <a href="#" @click.prevent="confirmRestore(student)"
                 >Restore</a
               >
             </td>
@@ -140,6 +161,7 @@ export default {
 .archive-container {
   width: 100%;
   padding: 20px;
+  min-height: 100vh;
 }
 .header {
   display: flex;
@@ -230,6 +252,7 @@ th:hover {
 @media (max-width: 480px) {
   .archive-container {
     padding: 10px;
+    min-height: 80svh;
   }
   h2 {
     font-size: 20px;

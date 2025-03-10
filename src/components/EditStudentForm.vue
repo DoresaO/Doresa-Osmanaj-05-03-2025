@@ -1,4 +1,5 @@
 <script>
+import Swal from "sweetalert2";
 export default {
   props: {
     student: Object,
@@ -6,6 +7,7 @@ export default {
   data() {
     return {
       editedStudent: {},
+      nameError:"",
       municipalities: [
         "Prishtinë",
         "Mitrovica",
@@ -56,12 +58,39 @@ export default {
     this.$el.focus();
   },
   methods: {
+    validateName() {
+      const regex = /^[A-Za-z\s]+$/; // Only letters and spaces
+      if (this.editedStudent.name.length > 20) {
+        this.nameError = "⚠ Name must be under 20 characters";
+      } else if (!regex.test(this.editedStudent.name)) {
+        this.nameError = "⚠ Name can only contain letters";
+      } else {
+        this.nameError = "";
+      }
+    },
     handleUpdate() {
       if (!this.editedStudent.name || !this.editedStudent.dob || !this.editedStudent.municipality) {
         alert("All fields except Index are required.");
         return;
       }
-      this.$emit("update-student", this.editedStudent);
+      if(this.nameError){
+        alert("Please enter a valid name.");
+        return;
+      }
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You are about to update this student's information.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, save it!",
+        confirmButtonColor: "#dc3545",
+        cancelButtonColor: "#6c757d", 
+      }).then((result) =>{
+        if (result.isConfirmed) {
+          this.$emit("update-student", this.editedStudent);
+          Swal.fire("Saved!", "Student information has been updated.", "success");
+        }
+      });
     },
   },
 };
@@ -74,7 +103,8 @@ export default {
 
       <div class="form-group">
         <label for="name">Name:</label>
-        <input id="name" v-model.trim="editedStudent.name" type="text" required />
+        <input id="name" v-model.trim="editedStudent.name" type="text" required @input="validateName" />
+        <p v-if="nameError" class="error-message">{{ nameError }}</p>
       </div>
 
       <div class="form-group">
@@ -84,7 +114,7 @@ export default {
 
       <div class="form-group">
         <label for="dob">Date of Birth:</label>
-        <input id="dob" v-model="editedStudent.dob" type="date" required />
+        <input id="dob" v-model="editedStudent.dob" type="date" disabled />
       </div>
 
       <div class="form-group">
@@ -159,9 +189,11 @@ export default {
     display: flex;
     justify-content: space-between;
     margin-top: 14px;
+    gap: 10px;
   }
 
   button {
+    flex: 1;
     padding: 8px 14px;
     border: none;
     cursor: pointer;
@@ -182,6 +214,11 @@ export default {
 
   button:hover {
     opacity: 0.85;
+  }
+  .error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 4px;
   }
 
   @keyframes fadeIn {

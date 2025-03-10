@@ -53,6 +53,7 @@ export default {
   top: 10%;
   left: 8%;
   filter: blur(80px);
+  z-index: -1;
 }
 .home-container::after {
   content: "";
@@ -64,6 +65,7 @@ export default {
   bottom: 18%;
   right: 12%;
   filter: blur(70px);
+  z-index: -1;
 }
 .check-students {
   font-size: 20px;
@@ -76,5 +78,14 @@ export default {
 }
 .check-students:hover {
   transform: translateX(5px);
+}
+@media (max-width: 768px) {
+  .home-container{
+    font-size: 18px;
+    padding: 20px;
+  }
+  .check-students{
+    font-size: 18px;
+  }
 }
 </style>
